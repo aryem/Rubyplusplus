@@ -1,27 +1,24 @@
 def SelectionSort(int[]num, int length)
 {
-      int i, j, first, temp
-	  i = length 
-	  i = 'A'
-	  i = 10
-	  
-	  while I > 0 {
-     {
-			first = 0          		# initialize to subscript of first element
-			j = 1
-           while j <= i	# locate smallest between positions 1 and i.
-          {
-				if  num[j] < num[first]
-					first = j
-				elsif num[j] > num[first]
-					j = j ++ 1
-          }
+      int i, j
+	  int[10] a
+	  print(5+5)
+	  get(i)
+	  id = 1+1*1
+	  MergeSort()
+	  sort(i,j)	
+		return (1+2)
 
-			
-				temp = num[first]		# Swap smallest found with element in position i.
-				num[first1]* = num[i]
-				num[i] = temp
-				i = i - 1
-     }
+	if 1>2{
+		print(id)
+	}else{
+		int j
+	}
+}
+
+
+def MergeSort(int[] num, int length)
+{
+	
 }
 

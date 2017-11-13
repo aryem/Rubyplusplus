@@ -1,9 +1,9 @@
-I
+MergeSort
 SelectionSort
-first
-first1
+a
 i
+id
 j
 length
 num
-temp
+sort

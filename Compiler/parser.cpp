@@ -10,6 +10,11 @@ int parser::index = 0;
 
 void parser::error()
 {
+	if (index == words.size()) {
+		std::cout << "Program ended\n";
+		std::system("pause");
+	}
+
 	std::cout << "error()";
 	std::exit(0);
 }
@@ -41,8 +46,12 @@ void parser::match(std::string token)
 
 		if (words.at(index).lexeme == "") {
 			print_function(token);
-		}else { print_function(words.at(index).lexeme); }
-		++index;
+		}else 
+		{
+			print_function(words.at(index).lexeme);
+		}
+			++index;
+
 		if (index < words.size()) {
 			lookahead = words.at(index).token;
 		}
@@ -70,7 +79,7 @@ void parser::function_definition()
 					if (lookahead == ")") {
 						match(")");
 
-						//compound_statement();
+						compound_statement();
 					}
 				}
 			}
@@ -138,13 +147,25 @@ void parser::compound_statement()
 {
 	++space_count;
 	print_function("Compound Statement");
+		
+	match("{");
+	local_declaration();
+	match("}");
+	
+	--space_count;
+}
+
+void parser::local_declaration()
+{
+	++space_count;
+	print_function("Local Declaration");
 	if (lookahead == "INT" || lookahead == "CHAR" || lookahead == "WHILE"
 		|| lookahead == "RETURN" || lookahead == "PRINT" || lookahead == "GET"
 		|| lookahead == "IF" || lookahead == "ID") {
 		statement();
-		compound_statement();
+		local_declaration();
 	}
-	else; 
+	else;
 	--space_count;
 }
 
@@ -159,7 +180,7 @@ void parser::statement()
 		id_statement();
 	}
 	else if (lookahead == "WHILE") {
-		loop();
+			loop();
 	}
 	else if (lookahead == "IF") {
 		conditional_statement();
@@ -183,7 +204,13 @@ void parser::variable_declaration()
 	data_type();
 	if (lookahead == "ID") {
 		match("ID");
-			// TODO add multi-variable
+		simple_declaration();
+	}
+	else if (lookahead == "[") {
+		match("[");
+		match("NC");
+		match("]");
+		match("ID");
 	}
 
 	--space_count;
@@ -211,6 +238,9 @@ void parser::id_statement_type()
 	else if (lookahead == "(") {
 		function_call();
 	}
+	else if (lookahead == "[") {
+		//array_assignment_statement();
+	}
 	--space_count;
 }
 
@@ -218,7 +248,7 @@ void parser::function_call()
 {
 	++space_count;
 	print_function("Function Call");
-	match(")");
+	match("(");
 	argument_list();
 	match(")");
 	--space_count;
@@ -253,7 +283,7 @@ void parser::additional_argument()
 void parser::assignment_statement()
 {
 	++space_count;
-	
+	print_function("Assignment_statement");
 	match("=");
 	expression();
 
@@ -272,6 +302,7 @@ void parser::expression()
 void parser::expression_prime()
 {
 	++space_count;
+	print_function("Expression Prime");
 	if (lookahead == "+") {
 		match("+");
 		term();
@@ -343,20 +374,143 @@ void parser::loop()
 	
 	match("WHILE");
 	boolean_expression();
-	inner_code();
-
-
+	//inner_code();
 	--space_count;
 }
 
 void parser::boolean_expression()
 {
 	++space_count;
+	print_function("Boolean Expression");
 	expression();
+	boolean_expression_prime();
+	--space_count;
+}
+
+void parser::simple_declaration()
+{
+	++space_count;
+	print_function("Simple Declaration");
+	if (lookahead == ",") {
+		match(",");
+		match("ID");
+		simple_declaration();
+	}
+	else;
+	--space_count;
+}
+
+void parser::output_statement()
+{
+	++space_count;
+	print_function("Output Statement");
+	match("PRINT");
+	match("(");
+	expression();
+	match(")");
+	--space_count;
+}
+
+void parser::input_statement()
+{
+	++space_count;
+	print_function("Input Statement");
+	match("GET");
+	match("(");
+	match("ID");
+	match(")");
+	--space_count;
+}
+
+void parser::return_statement()
+{
+	++space_count;
+	print_function("Return Statement");
+	match("RETURN");
+	return_choice();
+	--space_count;
+}
+
+void parser::return_choice()
+{
+	++space_count;
+	print_function("Return Choice");
+	if (lookahead == "ID" || lookahead == "LC" || lookahead == "(") {
+		expression();
+	}
+	else; // simple return
+	--space_count;
+}
+
+void parser::conditional_statement()
+{
+	++space_count;
+	print_function("Conditional Statement");
+	match("IF");
+	boolean_expression();
+	code_segment();
+	optional_condition();
+	--space_count;
+}
+
+void parser::boolean_expression_prime()
+{
+	++space_count;
+	print_function("Boolean Expression Prime");
 	if (lookahead == "RO") {
 		match("RO");
 		expression();
 	}
+	else;
+	--space_count;
+}
+
+void parser::code_segment()
+{
+	++space_count;
+	print_function("Code Segment");
+	if (lookahead == "{") {
+		compound_statement();
+	}
+	else if (lookahead == "INT" || lookahead == "CHAR" || lookahead == "WHILE"
+		|| lookahead == "RETURN" || lookahead == "PRINT" || lookahead == "GET"
+		|| lookahead == "IF" || lookahead == "ID") {
+		statement();
+	}
+	else; // If without body
+	--space_count;
+}
+
+void parser::optional_condition()
+{
+	++space_count;
+	print_function("Optional Condition");
+	if (lookahead == "ELSE") {
+		optional_else();
+	}
+	else if (lookahead == "ELSIF") {
+		optional_elsif();
+	}
+	else;
+	--space_count;
+}
+
+void parser::optional_else()
+{
+	++space_count;
+	print_function("Optional Else");
+	match("ELSE");
+	code_segment();
+	--space_count;
+}
+
+void parser::optional_elsif()
+{
+	++space_count;
+	print_function("Optional Elsif");
+	match("ELSIF");
+	boolean_expression();
+	code_segment();
 	--space_count;
 }
 
