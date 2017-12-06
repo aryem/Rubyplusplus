@@ -8,7 +8,7 @@ void lexical_analyzer::analyze_code()
 			token_lexeme tokenLexeme = is_keyword();
 
 			if (!tokenLexeme.is_valid()) {
-				index = backtrack;
+				index = backtrack;	
 				tokenLexeme = is_identifier();
 			}
 

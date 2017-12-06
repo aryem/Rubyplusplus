@@ -12,6 +12,7 @@ namespace parser {
 	extern std::string lookahead;
 	extern int space_count;
 	extern int index;
+
 	void error();
 	void run_parser(std::vector<token_lexeme> pr_words);
 	void program();

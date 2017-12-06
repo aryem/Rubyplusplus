@@ -374,7 +374,7 @@ void parser::loop()
 	
 	match("WHILE");
 	boolean_expression();
-	//inner_code();
+	code_segment();
 	--space_count;
 }
 
@@ -513,6 +513,8 @@ void parser::optional_elsif()
 	code_segment();
 	--space_count;
 }
+
+
 
 
 

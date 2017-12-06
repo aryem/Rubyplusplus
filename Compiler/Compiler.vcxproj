@@ -114,12 +114,22 @@
     <ClCompile Include="lexical_analyzer.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="symbol_table.cpp" />
+    <ClCompile Include="temp.cpp" />
+    <ClCompile Include="three_address_code.cpp" />
     <ClCompile Include="token_lexeme.cpp" />
+    <ClCompile Include="translator.cpp" />
+    <ClCompile Include="virtual_machine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexical_analyzer.h" />
     <ClInclude Include="parser.h" />
+    <ClInclude Include="symbol_table.h" />
+    <ClInclude Include="temp.h" />
+    <ClInclude Include="three_address_code.h" />
     <ClInclude Include="token_lexeme.h" />
+    <ClInclude Include="translator.h" />
+    <ClInclude Include="virtual_machine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

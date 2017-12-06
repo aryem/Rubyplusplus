@@ -1,24 +1,11 @@
-def SelectionSort(int[]num, int length)
+def sum(int i, int j) 
 {
-      int i, j
-	  int[10] a
-	  print(5+5)
-	  get(i)
-	  id = 1+1*1
-	  MergeSort()
-	  sort(i,j)	
-		return (1+2)
 
-	if 1>2{
-		print(id)
-	}else{
-		int j
-	}
+	a = c+7*
 }
 
-
-def MergeSort(int[] num, int length)
+def main
 {
-	
-}
+	Int a, b
 
+}

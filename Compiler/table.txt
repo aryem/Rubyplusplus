@@ -1,9 +1,8 @@
-MergeSort
-SelectionSort
+Int
 a
+b
+c
 i
-id
 j
-length
-num
-sort
+main
+sum

@@ -1,0 +1,5 @@
+INT	a	0
+INT	t0	1
+INT	t1	2
+INT	t2	3
+INT	t3	4
