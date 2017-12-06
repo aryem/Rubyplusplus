@@ -15,14 +15,18 @@ std::string translator::file_symbol_table = "symbol_table.txt";
 
 void translator::start_translator(std::vector<token_lexeme> _words)
 {
+	try {
 	index = 0;
 	words = _words;
 	lookahead = words.at(index).token;
 	intialize_op_code();
 	program();
-
 	write_intermediate_code();
 	write_symbol_table();
+	}
+	catch(const std::invalid_argument& e){
+		std::cout << e.what();
+	}
 }
 
 void translator::intialize_op_code()
@@ -37,6 +41,12 @@ void translator::intialize_op_code()
 	op_codes["*"] = "8";
 	op_codes["/"] = "9";
 	op_codes["-"] = "10";
+	op_codes["A_ASG"] = "11";
+	op_codes["A_ASG_V"] = "12";
+	op_codes["IFGE"] = "13";
+	op_codes["IFLE"] = "14";
+	op_codes["IFET"] = "15";
+	
 }
 
 bool translator::is_number(std::string x) {
@@ -51,7 +61,9 @@ void translator::program()
 		function_definition();
 		program();
 	}
-	else;
+	else {
+
+	};
 }
 
 void translator::intialize_symbol(std::string type, std::string symbol)
@@ -79,10 +91,9 @@ void translator::intialize_array(std::string type, std::string symbol, int size)
 	data_segment.push_back("#");
 	data_segment_add++;
 
-	
-
 
 }
+
 std::string translator::get_temp(std::string type) {
 
 	data_segment.push_back("$");
@@ -139,7 +150,12 @@ std::string translator::get_data_segment_value(std::string value)
 		pos = value.find(deli);
 		str_arr_index = value.substr(0, pos);
 		std::cout << str_id << str_arr_index;
-
+		 int address = stoi(_symbol_table.get_address(str_id));
+		 int arr_index = address + stoi(str_arr_index);
+		 std::string new_symbol = Temp->new_int_temp();
+		 _symbol_table.add_symbol(new_symbol, "INT", arr_index);
+		 
+		 return new_symbol;
 	}
 	return value;
 	
@@ -147,7 +163,6 @@ std::string translator::get_data_segment_value(std::string value)
 
 void translator::function_definition()
 {
-
 		if (lookahead == "DEF") {
 			match("DEF");
 
@@ -266,31 +281,56 @@ std::string translator::expression_prime(std::string input)
 	return input;
 }
 
+bool translator::valid_symbol(std::string symbol);
 void translator::id_statement()
 {
 	if (lookahead == "ID") {
 		match("ID");
+		
+		if (!_symbol_table.is_symbol(words.at(index - 1).lexeme)) {
+			throw std::invalid_argument("variable not declared");
+		}
+
+
 		std::string str_id = words.at(index - 1).lexeme;
+		std::string str_array_index = array_index();
+		if (str_array_index != "") {
+			if (is_number(str_array_index)) {
+				std::string t_0 = intialize_immediate_value(str_array_index, "INT");
+				std::string t_1 = get_temp("INT");
+				emit("A_ASG", str_id, t_0, t_1);
+				str_id = t_1;
+			}
+			else {
+				std::string t_1 = get_temp("INT");
+				emit("A_ASG", str_id, str_array_index, t_1);
+				str_id = t_1;
+			}
+		}
+
 		id_statement_type(str_id);
 	}
 }
+
+
 
 void translator::id_statement_type(std::string str_id)
 {
 	if (lookahead == "=") {
 		assignment_statement(str_id);
 	}
-	else if (lookahead == "(") {
-		//function_call(str_id);
+	else {
+		error("invalid id statement");
 	}
+
 }
 
 void translator::assignment_statement(std::string str_id)
 {
 	match("=");
 	std::string str_exp = expression();
-	emit(str_id + "=" + str_exp);
-	emit("=", get_data_segment_value(str_exp), str_id);
+	
+	emit("=", get_data_segment_value(str_exp), get_data_segment_value(str_id));
 }
 
 void translator::return_statement()
@@ -303,7 +343,6 @@ void translator::return_choice()
 {
 	if (lookahead == "ID" || lookahead == "LC" || lookahead == "NC" || lookahead == "(") {
 	std::string str_exp = expression();
-	//emit("return" + str_exp);
 	emit("RETURN",get_data_segment_value(str_exp));
 	}
 	else {
@@ -334,6 +373,7 @@ void translator::boolean_expression()
 		std::string str_exp_2 = expression();
 		emitC("IF" + str_ro, get_data_segment_value(str_exp_1),
 			get_data_segment_value(str_exp_2), line_number);
+		
 	}
 }
 
@@ -361,15 +401,16 @@ void translator::additional_parameters()
 void translator::match(std::string token)
 {
 	if (lookahead == token) {
-		
+
 		++index;
 		if (index < words.size()) {
 			lookahead = words.at(index).token;
 		}
-		else {
-			error("InValid token");
-		}
 	}
+		else {
+			error("Invalid token");	
+		}
+	
 }
 
 void translator::input_statement()
@@ -377,7 +418,25 @@ void translator::input_statement()
 	match("GET");
 	match("(");
 	match("ID");
+	if (!_symbol_table.is_symbol(words.at(index - 1).lexeme)) {
+		throw std::invalid_argument("variable not declared");
+	}
 	std::string str_id = words.at(index - 1).lexeme;
+	std::string str_array_index = array_index();
+	if (str_array_index != "") {
+		if (is_number(str_array_index)) {
+			std::string t_0 = intialize_immediate_value(str_array_index, "INT");
+			std::string t_1 = get_temp("INT");
+			emit("A_ASG", str_id, t_0, t_1);
+			str_id = t_1;
+		}
+		else {
+			std::string t_1 = get_temp("INT");
+			emit("A_ASG", str_id, str_array_index, t_1);
+			str_id = t_1;
+		}
+
+	}
 	match(")");
 	emit("GET", str_id);
 }
@@ -419,6 +478,7 @@ void translator::compound_statement()
 	local_declaration();
 	match("}");
 }
+
 void translator::local_declaration() {
 	if (lookahead == "INT" || lookahead == "CHAR" || lookahead == "WHILE"
 		|| lookahead == "RETURN" || lookahead == "PRINT" || lookahead == "GET"
@@ -437,7 +497,7 @@ void translator::statement()
 		id_statement();
 	}
 	else if (lookahead == "WHILE") {
-		loop();
+			loop();
 	}
 	else if (lookahead == "IF") {
 		conditional_statement();
@@ -451,6 +511,9 @@ void translator::statement()
 	else if (lookahead == "GET") {
 			input_statement();
 	}
+	else {
+		throw std::invalid_argument("invalid token");
+	}
 
 }
 void translator::variable_declaration()
@@ -461,7 +524,6 @@ void translator::variable_declaration()
 		match("ID");
 		std::string _symbol = words.at(index - 1).lexeme;
 		str_emit += words.at(index - 1).lexeme;
-		
 		variable_declaration_type(type,str_emit);
 	}
 
@@ -472,18 +534,12 @@ void translator::variable_declaration_type(std::string& type,std::string& str_em
 		match("[");
 		match("NC");
 		std::string arr_size = words.at(index - 1).lexeme;
-		//NOICE
-		//std::string temporal_symbol = intialize_immediate_value(arr_size, type);
 		match("]");
 		if (type == "INT") {
 			intialize_array("A_INT", str_emit, stoi(arr_size));
-		//emit("A_INT", str_emit, temporal_symbol);
-		//emit("A_INT" + std::string("\t") + str_emit + std::string("\t") + arr_size + std::string("\n"));
 		}
 		else if (type == "CHAR") {
 			intialize_array("A_CHAR", str_emit, stoi(arr_size));
-			//	emit("A_CHAR" + std::string("\t") + str_emit + std::string("\t") + arr_size + std::string("\n"));
-		
 		}
 	}
 	else {
@@ -497,31 +553,10 @@ void translator::simple_declaration(std::string& type, std::string& str_emit) {
 		match(",");
 		match("ID");
 		std::string _symbol = words.at(index - 1).lexeme;
-
 		intialize_symbol(type, _symbol);
-		//emit(type, _symbol);
-
-		//str_emit += type + std::string("\t") + id+"\n";
 		simple_declaration(type,str_emit);
-		
+	
 	}
-
-	//else if (lookahead == "=") {
-	//	match("=");
-
-	//	if (lookahead == "NC") {
-	//		match("NC");
-	//		std::cout << words.at(index-1).lexeme << "\n";
-	//		// change values of variable
-	//	}
-	//	else if (lookahead == "LC") {
-	//		match("LC");
-	//		std::cout << words.at(index-1).lexeme << "\n";
-	//	}
-	//}
-	//else {
-	//	//emit(str_emit);
-	//}
 
 }
 
@@ -541,10 +576,9 @@ void translator::error(std::string message)
 
 	}
 	else {
-	std::cout << "error():"+ message;
+		throw std::invalid_argument(message);
 	}
-	std::system("Pause");
-	std::exit(0);
+
 }
 
 void translator::output_statement()
@@ -553,8 +587,7 @@ void translator::output_statement()
 	match("(");
 	std::string str_exp = expression();
 	match(")");
-	//std::string str_emit = "print" + std::string("\t") + str_exp;
-	//emit(str_emit);
+
 	std::string symbol;
 	if (is_number(str_exp)) {
 	symbol	= intialize_immediate_value(str_exp, "INT");
@@ -583,10 +616,24 @@ std::string translator::factor()
 {
 	if (lookahead == "ID") {
 		match("ID");
+		if (!_symbol_table.is_symbol(words.at(index - 1).lexeme)) {
+			throw std::invalid_argument("variable not declared");
+		}
 		std::string str_ID = words.at(index - 1).lexeme;
 		std::string str_array_index = array_index();
 		if (str_array_index != "") {
-			return	str_ID + '$' + str_array_index;
+			if (is_number(str_array_index)) {
+				std::string t_0 = intialize_immediate_value(str_array_index, "INT");
+				std::string t_1 = get_temp("INT");
+				emit("A_ASG", str_ID, t_0, t_1);
+				str_ID = t_1;
+			}
+			else {
+				std::string t_1 = get_temp("INT");
+				emit("A_ASG", str_ID, str_array_index, t_1);
+				str_ID = t_1;
+			}
+
 		}
 		return str_ID;
 	}
@@ -602,6 +649,10 @@ std::string translator::factor()
 			return str_exp;
 		}
 	}
+	else {
+		throw std::invalid_argument("invalid expression");
+	}
+
 
 	
 }
@@ -614,13 +665,18 @@ std::string translator::array_index() {
 				match("NC");
 				std::string str_NC = words.at(index - 1).lexeme;
 				if (lookahead == "]") {
+					match("]");
 					return  str_NC;
 				}
 			}
 			else if (lookahead == "ID") {
 				match("ID");
+				if (!_symbol_table.is_symbol(words.at(index - 1).lexeme)) {
+					throw std::invalid_argument("variable not declared");
+				}
 				std::string str_ID = words.at(index - 1).lexeme;
 				if (lookahead == "]") {
+					match("]");
 					return  str_ID ;
 				}
 			}

@@ -25,6 +25,21 @@ std::string three_address_code::to_string()
 	return str;
 }
 
+void three_address_code::replace(std::string address,std::string new_address)
+{
+	if (arg_1 == address) {
+		arg_1 = new_address;
+	}
+	else if (arg_2 == address) {
+		arg_2 = new_address;
+	}
+	else if (result == address) {
+		result = new_address;
+	}
+}
+
+
+
 
 three_address_code::~three_address_code()
 {

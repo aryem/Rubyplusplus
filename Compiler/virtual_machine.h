@@ -13,9 +13,10 @@ namespace virtual_machine {
 	extern symbol_table _symbol_table;
 	extern int line_number;
 
-
+	void replace_address(std::string address,std::string new_address, int pc);
 	void run_vm();
-
+	bool is_valid(int ds_index);
+	void error(std::string message);
 
 }
 

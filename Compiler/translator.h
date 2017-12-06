@@ -3,6 +3,7 @@
 
 #include<vector>
 #include<fstream>
+#include<stdexcept>
 #include<unordered_map>
 #include<regex>
 #include"lexical_analyzer.h"
@@ -44,6 +45,7 @@ namespace translator {
 	std::string array_type();
 	void additional_parameters();
 
+	bool valid_symbol(std::string symbol);
 	void conditional_statement();
 	void optional_condition();
 	void compound_statement();
@@ -83,7 +85,7 @@ namespace translator {
 	void emitC(std::string op_code, std::string arg_1, std::string arg_2,
 		int line_number);
 	void emit(std::string op_code);
-
+	
 }
 
 

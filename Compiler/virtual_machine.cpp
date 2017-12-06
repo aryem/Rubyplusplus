@@ -7,7 +7,28 @@ symbol_table virtual_machine::_symbol_table;
 int virtual_machine::line_number = 0;
 
 
+void virtual_machine::replace_address(std::string address,std::string new_address, int pc) 
+{
 
+	for (int i = pc; i < intermediate_code.size(); ++i) {
+
+		intermediate_code[i].replace(address, new_address);
+	}
+	
+}
+void virtual_machine::error(std::string message) {
+
+	std::cout <<std::endl<< message<<std::endl;
+	system("pause");
+	exit(0);
+}
+bool virtual_machine::is_valid(int ds_index) {
+
+	if (data_segment[ds_index] == "$" || data_segment[ds_index] =="#")return false;
+	
+	return true;
+
+}
 void virtual_machine::run_vm()
 {
 	for (int pc = 0; pc < intermediate_code.size(); ++pc) {
@@ -17,13 +38,22 @@ void virtual_machine::run_vm()
 		if (op_code == op_codes.at("PRINT")) {
 
 			int result = stoi(intermediate_code[pc].result);
-			std::cout << data_segment.at(result) << std::endl;
+				if (is_valid(result)) {
+					std::cout << data_segment.at(result) << std::endl;
+				}
+				else {
+					error("variable not intialized");
+				}
+			
 
 		 }
 		else if (op_code == op_codes.at("IFGT")) {
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+			
 			int val_1 = stoi(data_segment[arg_1]);
 			int val_2 = stoi(data_segment[arg_2]);
 			if (val_1 > val_2) {
@@ -35,7 +65,56 @@ void virtual_machine::run_vm()
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
-			if (data_segment[arg_1] > data_segment[arg_2]) {
+
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
+			int val_1 = stoi(data_segment[arg_1]);
+			int val_2 = stoi(data_segment[arg_2]);
+			if (val_1 < val_2) {
+				pc = result;
+				--pc;
+			}
+		}
+		else if (op_code == op_codes.at("IFET")) {
+			int result = stoi(intermediate_code[pc].result);
+			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			int arg_2 = stoi(intermediate_code[pc].arg_2);
+
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
+			int val_1 = stoi(data_segment[arg_1]);
+			int val_2 = stoi(data_segment[arg_2]);
+			if (val_1 == val_2) {
+				pc = result;
+				--pc;
+			}
+
+		}
+		else if (op_code == op_codes.at("IFLE")) {
+			int result = stoi(intermediate_code[pc].result);
+			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			int arg_2 = stoi(intermediate_code[pc].arg_2);
+
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
+			int val_1 = stoi(data_segment[arg_1]);
+			int val_2 = stoi(data_segment[arg_2]);
+			if (val_1 <= val_2) {
+				pc = result;
+				--pc;
+			}
+
+		}
+		else if (op_code == op_codes.at("IFGE")) {
+			int result = stoi(intermediate_code[pc].result);
+			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			int arg_2 = stoi(intermediate_code[pc].arg_2);
+
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
+			int val_1 = stoi(data_segment[arg_1]);
+			int val_2 = stoi(data_segment[arg_2]);
+			if (val_1 >= val_2) {
 				pc = result;
 				--pc;
 			}
@@ -44,7 +123,9 @@ void virtual_machine::run_vm()
 
 			int value; 
 			std::cin >> value;
+
 			int result = stoi(intermediate_code[pc].result);
+	
 			data_segment[result] = std::to_string(value);
 		}
 		else if (op_code == op_codes.at("GOTO")) {
@@ -54,14 +135,19 @@ void virtual_machine::run_vm()
 		}
 		else if (op_code == op_codes.at("=")) {
 
-			int result = stoi(intermediate_code[pc].result);
+ 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			if(!is_valid(arg_1)) error("variable not intialized");
+
 			data_segment[result] = data_segment[arg_1];
 		}
 		else if (op_code == op_codes.at("+")) {
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
+
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+			
 			int add = std::stoi(data_segment[arg_1]) + std::stoi(data_segment[arg_2]);
 			data_segment[result] = std::to_string(add);
 		}
@@ -69,6 +155,9 @@ void virtual_machine::run_vm()
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
 			int add = std::stoi(data_segment[arg_1]) - std::stoi(data_segment[arg_2]);
 			data_segment[result] = std::to_string(add);
 		}
@@ -76,6 +165,9 @@ void virtual_machine::run_vm()
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
 			int add = std::stoi(data_segment[arg_1]) * std::stoi(data_segment[arg_2]);
 			data_segment[result] = std::to_string(add);
 		}
@@ -83,8 +175,32 @@ void virtual_machine::run_vm()
 			int result = stoi(intermediate_code[pc].result);
 			int arg_1 = stoi(intermediate_code[pc].arg_1);
 			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			
+			if (!(is_valid(arg_1) && is_valid(arg_2))) error("variable not intialized");
+
+			if (stoi(data_segment[arg_2]) == 0) {
+				std::cout << "divide by zero";
+				system("pause");
+				std::exit(0);
+			}
 			int add = std::stoi(data_segment[arg_1]) / std::stoi(data_segment[arg_2]);
+		
 			data_segment[result] = std::to_string(add);
+		}
+		else if (op_code == op_codes.at("A_ASG")) {
+			int result = stoi(intermediate_code[pc].result);
+			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			int arr_address = arg_1 + std::stoi(data_segment[arg_2]);
+			data_segment[result] = std::to_string(arr_address);
+			replace_address(std::to_string(result), std::to_string(arr_address), pc);
+		}
+		else if (op_code == op_codes.at("A_ASG_V")) {
+			int result = stoi(intermediate_code[pc].result);
+			int arg_1 = stoi(intermediate_code[pc].arg_1);
+			int arg_2 = stoi(intermediate_code[pc].arg_2);
+			int arr_address = arg_1 + std::stoi(data_segment[arg_2]);
+				
 		}
 
 

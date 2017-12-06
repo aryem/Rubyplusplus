@@ -1,8 +1,3 @@
-Int
 a
 b
-c
-i
-j
-main
 sum
